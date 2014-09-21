@@ -11,8 +11,8 @@ def minefield(center)
     while j < 3
       x = center[0] - 1 + i
       y = center[1] - 1 + j
-      if (x >= 1 && x <= 9) && (y >= 1 || y <= 9)
-  	ary.push([x, y])
+      if (x >= 1 && x <= 9) && (y >= 1 && y <= 9)
+  	    ary.push([x, y])
       end
       j += 1
     end
@@ -22,72 +22,81 @@ def minefield(center)
   return [center, ary]
 end
 
-def getvalue(coordinate, map)
-  return map[(coordinate[0] - 1) * 9 + coordinate[1] - 1]
+def getvalue(coordinate)
+  return $map[(coordinate[0] - 1) * 9 + coordinate[1] - 1]
 end
 
-def search(ary, map)
-  sign = 0
+def unknown(ary)
+  sum = 0
   i = 0
   while i < ary[1].length
-    if getvalue(ary[1][i], map) == -2
-      sign += 1
+    if getvalue(ary[1][i]) == -1
+      sum += 1
     end
     i += 1
   end
-  if sign == getvalue(ary[0], map)
-    puts 'This minefield: OK'
-  else
-    unknown = 0
-    i = 0
-    while i < ary[1].length
-      if getvalue(ary[1][i], map) == -1
-        unknown += 1
-      end
-      i += 1
+  return sum
+end
+
+def sign(ary)
+  sum = 0
+  i = 0
+  while i < ary[1].length
+    if getvalue(ary[1][i]) == -2
+      sum += 1
     end
-    if unknown == getvalue(ary[0], map)
+    i += 1
+  end
+  return sum
+end
+
+def search(ary)
+  if sign(ary) == getvalue(ary[0]) && unknown(ary) != 0
+    puts 'This minefield of ' + ary[0].to_s + ': OK'
+    sleep(50)
+    exit(0)
+  else
+    if unknown(ary) + sign(ary) == getvalue(ary[0])
       i = 0
       while i < ary[1].length
-        if getvalue(ary[1][i], map) == -1
-	  puts 'Please sign ' + ary[1][i].to_s
+        if getvalue(ary[1][i]) == -1
+	        puts 'Please sign ' + ary[1][i].to_s
+          sleep(50)
+          exit(0)
         end
         i += 1
       end
     end
   end
 end
-=begin
-def randcheck
-  x = rand(10)
-  y = rand(10)
-  puts 'Please check ' + [x, y].to_s
-end
+$map = []
 
-def deadlock(map, map2)
-  key = 0
-  i = 0
-  while i < map.length
-    if map[i] != map2[i]
-    key = 1
+content = File.read('map.txt')
+while 1
+  n = content.index(',')
+  if n != nil
+    str = content[0, n]
+    content = content[n + 1, content.length - n - 1]
+    $map.push(str.to_i)
+  else
+    str = content[0, content.length]
+    $map.push(str.to_i)
     break
   end
-  i += 1
-  end
-  if key == 0
-    randcheck
-  end
 end
-=end
-map = [0,0,0,0,0,0,0,0,0,
-       0,0,0,0,0,0,0,1,1,
-       0,0,0,0,0,0,1,2,-1,
-       0,0,0,0,0,1,2,-1,-1,
-       0,0,0,0,0,2,-1,-1,-1,
-       1,1,0,0,0,2,-1,-1,-1,
-       -1,1,0,0,0,2,-1,-1,-1,
-       -1,1,1,1,1,2,-1,-1,-1,
-       -1,-1,-1,-1,-1,-1,-1,-1,-1]
-	   
-search(minefield([gets.chomp.to_i, gets.chomp.to_i]), map)
+
+x = 1
+y = 1
+while x < 10
+  while y < 10
+    value = getvalue([x, y])
+    if value != 0 && value != -1 && value != -2
+      search(minefield([x, y]))
+    end
+    y += 1
+  end
+  x += 1
+  y = 1
+end
+
 sleep(50)
